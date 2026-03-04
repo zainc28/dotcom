@@ -376,7 +376,7 @@ body::before {
 </head>
 <body>
 
-<img src="tux.png" id="tux-bouncer" alt="Tux" draggable="false">
+<!-- <img src="tux.png" id="tux-bouncer" alt="Tux" draggable="false"> -->
 
 <canvas id="space-canvas"></canvas>
 
@@ -392,7 +392,7 @@ body::before {
 </div>
 
 <div class="page">
-
+<!-- in progress project.. local energy powered llm, i wanted an excuse to learn low level and was intrigued by the growing energy demeand  -->
 <section id="hero">
   <h1 class="hero-name">hi</h1>
   <ul class="hero-bullets">
@@ -588,6 +588,17 @@ function animate() {
 }
 animate();
 
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+</script>
+
+</body>
+</html>
+
+
+<!-- 
 // ── TUX: Drag + Bounce ────────────────────────────────────────────
 const tux = document.getElementById('tux-bouncer');
 
@@ -701,13 +712,4 @@ function moveTux() {
   requestAnimationFrame(moveTux);
 }
 
-if (tux.complete) moveTux(); else tux.onload = moveTux;
-
-window.addEventListener('resize', () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-});
-</script>
-
-</body>
-</html>
+if (tux.complete) moveTux(); else tux.onload = moveTux; -->
