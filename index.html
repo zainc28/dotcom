@@ -20,6 +20,26 @@ body {
   position: relative;
 }
 
+/* ── BOUNCING TUX ─────────────────── */
+#tux-bouncer {
+  position: fixed;
+  width: 40px;
+  height: auto;
+  z-index: 1;
+  pointer-events: auto;
+  image-rendering: pixelated;
+  will-change: transform;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+#tux-bouncer.dragging {
+  cursor: grabbing;
+  filter: drop-shadow(0 0 8px rgba(255, 0, 110, 0.8));
+  z-index: 9999;
+}
+
 /* Text selection: pink highlight */
 ::selection {
   background-color: #ff006e;
@@ -336,10 +356,27 @@ body::before {
   .projects-grid {
     grid-template-columns: 1fr;
   }
+  .nav-wrapper {
+    padding: 0 1rem;
+  }
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 1.25rem 0;
+  }
+  .page {
+    padding: 0 1rem;
+  }
+  .footer {
+    padding: 1rem 1rem 2rem;
+  }
 }
 </style>
 </head>
 <body>
+
+<img src="tux.png" id="tux-bouncer" alt="Tux" draggable="false">
 
 <canvas id="space-canvas"></canvas>
 
@@ -445,16 +482,13 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function(e) {
     e.preventDefault();
     const target = document.querySelector(this.getAttribute('href'));
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth' });
-    }
+    if (target) target.scrollIntoView({ behavior: 'smooth' });
   });
 });
 
 // Space animation: Shooting stars and meteors
 const canvas = document.getElementById('space-canvas');
 const ctx = canvas.getContext('2d');
-
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
@@ -471,27 +505,18 @@ class Star {
     this.opacity = Math.random() * 0.5 + 0.3;
     this.twinkle = Math.random() * 0.02;
   }
-
   update() {
-    this.x += this.vx;
-    this.y += this.vy;
+    this.x += this.vx; this.y += this.vy;
     this.opacity += this.twinkle;
-
-    if (this.opacity <= 0.1 || this.opacity >= 1) {
-      this.twinkle *= -1;
-    }
-
+    if (this.opacity <= 0.1 || this.opacity >= 1) this.twinkle *= -1;
     if (this.x < 0) this.x = canvas.width;
     if (this.x > canvas.width) this.x = 0;
     if (this.y < 0) this.y = canvas.height;
     if (this.y > canvas.height) this.y = 0;
   }
-
   draw() {
     ctx.fillStyle = `rgba(204, 204, 204, ${this.opacity})`;
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
   }
 }
 
@@ -505,125 +530,178 @@ class ShootingStar {
     this.opacity = 1;
     this.life = Math.random() * 0.5 + 0.3;
   }
-
-  update() {
-    this.x += this.vx;
-    this.y += this.vy;
-    this.opacity -= this.life * 0.01;
-  }
-
+  update() { this.x += this.vx; this.y += this.vy; this.opacity -= this.life * 0.01; }
   draw() {
     const angle = Math.atan2(this.vy, this.vx);
     ctx.strokeStyle = `rgba(204, 204, 204, ${this.opacity})`;
-    ctx.lineWidth = 1.5;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(this.x, this.y);
-    ctx.lineTo(
-      this.x - Math.cos(angle) * this.length,
-      this.y - Math.sin(angle) * this.length
-    );
+    ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(this.x, this.y);
+    ctx.lineTo(this.x - Math.cos(angle) * this.length, this.y - Math.sin(angle) * this.length);
     ctx.stroke();
   }
-
-  isAlive() {
-    return this.opacity > 0 && this.x > -100 && this.x < canvas.width + 100;
-  }
+  isAlive() { return this.opacity > 0 && this.x > -100 && this.x < canvas.width + 100; }
 }
 
 class Meteor {
   constructor() {
-    this.x = Math.random() * canvas.width;
-    this.y = -50;
-    this.vx = (Math.random() - 0.5) * 6;
-    this.vy = Math.random() * 5 + 4;
-    this.size = Math.random() * 4 + 2;
-    this.opacity = 1;
+    this.x = Math.random() * canvas.width; this.y = -50;
+    this.vx = (Math.random() - 0.5) * 6; this.vy = Math.random() * 5 + 4;
+    this.size = Math.random() * 4 + 2; this.opacity = 1;
     this.rotation = Math.random() * Math.PI * 2;
     this.rotationSpeed = (Math.random() - 0.5) * 0.15;
     this.trail = [];
   }
-
   update() {
-    this.x += this.vx;
-    this.y += this.vy;
-    this.rotation += this.rotationSpeed;
+    this.x += this.vx; this.y += this.vy; this.rotation += this.rotationSpeed;
     this.trail.push({ x: this.x, y: this.y, opacity: 0.6 });
     if (this.trail.length > 20) this.trail.shift();
     this.opacity -= 0.008;
   }
-
   draw() {
     for (let i = 0; i < this.trail.length; i++) {
       const t = this.trail[i];
-      const trailOpacity = (t.opacity * this.opacity * (i / this.trail.length)) * 0.8;
-      ctx.fillStyle = `rgba(255, 100, 100, ${trailOpacity})`;
-      ctx.beginPath();
-      ctx.arc(t.x, t.y, this.size * 0.6, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillStyle = `rgba(255, 100, 100, ${t.opacity * this.opacity * (i / this.trail.length) * 0.8})`;
+      ctx.beginPath(); ctx.arc(t.x, t.y, this.size * 0.6, 0, Math.PI * 2); ctx.fill();
     }
-
-    ctx.save();
-    ctx.translate(this.x, this.y);
-    ctx.rotate(this.rotation);
+    ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.rotation);
     ctx.fillStyle = `rgba(255, 150, 100, ${this.opacity})`;
     ctx.fillRect(-this.size * 0.5, -this.size, this.size, this.size * 2);
     ctx.strokeStyle = `rgba(255, 200, 100, ${this.opacity})`;
-    ctx.lineWidth = 1;
-    ctx.strokeRect(-this.size * 0.5, -this.size, this.size, this.size * 2);
+    ctx.lineWidth = 1; ctx.strokeRect(-this.size * 0.5, -this.size, this.size, this.size * 2);
     ctx.restore();
   }
-
-  isAlive() {
-    return this.opacity > 0 && this.y < canvas.height + 100;
-  }
+  isAlive() { return this.opacity > 0 && this.y < canvas.height + 100; }
 }
 
-for (let i = 0; i < 60; i++) {
-  particles.push(new Star());
-}
+for (let i = 0; i < 60; i++) particles.push(new Star());
 
 function animate() {
   ctx.fillStyle = 'rgba(10, 10, 10, 0.3)';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-
   for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i];
-
-    if (p instanceof Star) {
-      p.update();
-      p.draw();
-    } else if (p instanceof ShootingStar) {
-      p.update();
-      p.draw();
-      if (!p.isAlive()) {
-        particles.splice(i, 1);
-      }
-    } else if (p instanceof Meteor) {
-      p.update();
-      p.draw();
-      if (!p.isAlive()) {
-        particles.splice(i, 1);
-      }
-    }
+    const p = particles[i]; p.update(); p.draw();
+    if ((p instanceof ShootingStar || p instanceof Meteor) && !p.isAlive()) particles.splice(i, 1);
   }
-
-  if (Math.random() < 0.02) {
-    particles.push(new ShootingStar());
-  }
-
-  meteorCounter++;
-  if (meteorCounter > 300) {
-    if (Math.random() < 0.4) {
-      particles.push(new Meteor());
-    }
-    meteorCounter = 0;
-  }
-
+  if (Math.random() < 0.02) particles.push(new ShootingStar());
+  if (++meteorCounter > 300) { if (Math.random() < 0.4) particles.push(new Meteor()); meteorCounter = 0; }
   requestAnimationFrame(animate);
 }
-
 animate();
+
+// ── TUX: Drag + Bounce ────────────────────────────────────────────
+const tux = document.getElementById('tux-bouncer');
+
+let posX = Math.random() * (window.innerWidth - 40);
+let posY = Math.random() * (window.innerHeight - 40);
+let velX = 0.8;
+let velY = 0.8;
+
+// Drag state
+let isDragging = false;
+let dragOffsetX = 0;
+let dragOffsetY = 0;
+
+// Velocity tracking during drag (sampled over last few frames)
+let lastDragX = 0;
+let lastDragY = 0;
+let prevDragX = 0;
+let prevDragY = 0;
+
+// Friction: each frame velocity decays toward the default bounce speed
+const FRICTION = 0.991;
+const BASE_SPEED = 0.8;
+
+function getClientPos(e) {
+  if (e.touches) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  return { x: e.clientX, y: e.clientY };
+}
+
+tux.addEventListener('mousedown', startDrag);
+tux.addEventListener('touchstart', startDrag, { passive: true });
+
+function startDrag(e) {
+  isDragging = true;
+  tux.classList.add('dragging');
+  const { x, y } = getClientPos(e);
+  dragOffsetX = x - posX;
+  dragOffsetY = y - posY;
+  prevDragX = x;
+  prevDragY = y;
+  lastDragX = x;
+  lastDragY = y;
+}
+
+document.addEventListener('mousemove', onDrag);
+document.addEventListener('touchmove', onDrag, { passive: true });
+
+function onDrag(e) {
+  if (!isDragging) return;
+  const { x, y } = getClientPos(e);
+
+  // Track velocity: store previous sample to compute delta on release
+  prevDragX = lastDragX;
+  prevDragY = lastDragY;
+  lastDragX = x;
+  lastDragY = y;
+
+  posX = x - dragOffsetX;
+  posY = y - dragOffsetY;
+
+  // Clamp within viewport
+  const w = tux.clientWidth || 40;
+  const h = tux.clientHeight || 50;
+  posX = Math.max(0, Math.min(window.innerWidth - w, posX));
+  posY = Math.max(0, Math.min(window.innerHeight - h, posY));
+
+  tux.style.transform = `translate(${posX}px, ${posY}px)`;
+}
+
+document.addEventListener('mouseup', endDrag);
+document.addEventListener('touchend', endDrag);
+
+function endDrag() {
+  if (!isDragging) return;
+  isDragging = false;
+  tux.classList.remove('dragging');
+
+  // Use drag delta as new bounce velocity, clamped to a reasonable range
+  const rawVX = lastDragX - prevDragX;
+  const rawVY = lastDragY - prevDragY;
+  const maxSpeed = 8;
+  const minSpeed = 0.5;
+
+  velX = Math.max(-maxSpeed, Math.min(maxSpeed, rawVX));
+  velY = Math.max(-maxSpeed, Math.min(maxSpeed, rawVY));
+
+  // Ensure minimum speed so Tux doesn't stop dead
+  if (Math.abs(velX) < minSpeed) velX = minSpeed * (velX >= 0 ? 1 : -1);
+  if (Math.abs(velY) < minSpeed) velY = minSpeed * (velY >= 0 ? 1 : -1);
+}
+
+function moveTux() {
+  if (!isDragging) {
+    const w = tux.clientWidth || 40;
+    const h = tux.clientHeight || 50;
+
+    // Apply friction: decay speed toward BASE_SPEED each frame
+    const speedX = Math.abs(velX);
+    const speedY = Math.abs(velY);
+    if (speedX > BASE_SPEED) velX *= FRICTION;
+    if (speedY > BASE_SPEED) velY *= FRICTION;
+    // Clamp so we never fall below base speed
+    if (Math.abs(velX) < BASE_SPEED) velX = BASE_SPEED * (velX >= 0 ? 1 : -1);
+    if (Math.abs(velY) < BASE_SPEED) velY = BASE_SPEED * (velY >= 0 ? 1 : -1);
+
+    posX += velX;
+    posY += velY;
+    if (posX + w >= window.innerWidth || posX <= 0) velX *= -1;
+    if (posY + h >= window.innerHeight || posY <= 0) velY *= -1;
+    tux.style.transform = `translate(${posX}px, ${posY}px)`;
+  }
+  requestAnimationFrame(moveTux);
+}
+
+if (tux.complete) moveTux(); else tux.onload = moveTux;
 
 window.addEventListener('resize', () => {
   canvas.width = window.innerWidth;
