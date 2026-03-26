@@ -255,6 +255,8 @@ body::before {
   background: rgba(0, 10, 10, 0.9);
   overflow: hidden;
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .project-item:hover {
@@ -282,13 +284,15 @@ body::before {
 .video-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  flex: 1;
   background: #000000;
   border-top: 1px solid #cccccc;
   border-bottom: 1px solid #cccccc;
+  overflow: hidden;
 }
 
 .video-wrap video {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -420,7 +424,7 @@ body::before {
 <section id="projects">
   <p class="section-header">selected builds</p>
   <div class="projects-grid">
-    <div class="project-item">
+    <!-- <div class="project-item">
       <div class="project-info">
         <div class="project-name">PiezoLLM</div>
         <p class="project-desc">Currently building — Local LLM powered by piezoelectric floor tiles</p>
@@ -429,14 +433,14 @@ body::before {
         <span>⬡</span>
         <a href="https://github.com/zainc28" target="_blank">zain/PiezoLLM</a>
       </div>
-    </div>
+    </div> -->
     <div class="project-item">
       <div class="project-info">
         <div class="project-name">Maestro</div>
-        <p class="project-desc">XR tennis coach for Meta Quest using real-time swing deviation via custom shaders overlay</p>
+        <p class="project-desc">VR sports coaching for Meta Quest using real-time swing deviation and pinpointed feedback</p>
       </div>
       <div class="video-wrap">
-        <video src="videos/maestrodemo.mp4" autoplay muted loop playsinline></video>
+        <video src="videos/maestrodemo.mp4" autoplay muted loop playsinline onloadedmetadata="this.currentTime=20"></video>
       </div>
       <div class="project-footer">
         <span>⬡</span>
